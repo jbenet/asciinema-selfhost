@@ -4,6 +4,7 @@
 
 `asciinema-selfhost` downloads an asciinema from asciinema.org and makes a small static website. It has all the necessary data, js, and css. It is completely self-hosted! It can be published anywhere, and even works offline!
 
+Install with
 ```sh
 npm install -g asciinema-selfhost
 ```
