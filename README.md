@@ -8,7 +8,7 @@
 npm install -g asciinema-selfhost
 ```
 
-![](http://gateway.ipfs.io/ipfs/QmSWnauy7tquRmh1PwahrZP5Pj8uiRVTTL916rkyyeJ9z6/cap.png)
+[![](http://gateway.ipfs.io/ipfs/QmSWnauy7tquRmh1PwahrZP5Pj8uiRVTTL916rkyyeJ9z6/cap.png)](http://gateway.ipfs.io/ipfs/QmdEaGfwzkNHQtxgp3XWxPgeuCEKecEHLSPnCUUpz3W7zs/)
 
 ## What is this
 
