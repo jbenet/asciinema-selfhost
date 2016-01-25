@@ -21,8 +21,8 @@ This script is run _after_ you upload to asciinema.org. We hope to be able to av
 
 1. Run `asciinema` to record as usual
 2. Upload to asciinema.org
-3. Run `asciinema-rehost --clone <id>` to download it.
-4. Run `asciinema-rehost --rehost <id>` to publish to ipfs.
+3. Run `asciinema-selfhost --clone <id>` to download it.
+4. Run `asciinema-selfhost --rehost <id>` to publish to ipfs.
 
 ## Install
 
