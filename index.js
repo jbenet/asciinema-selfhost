@@ -1,4 +1,5 @@
 var fs = require('fs')
+var tmp = require('tmp')
 var fse = require('fs-extra')
 var path = require('path')
 var vinyl = require('vinyl')
@@ -13,6 +14,7 @@ x.getAsciinemaFrame = getAsciinemaFrame
 x.getAsciinemaSize = getAsciinemaSize
 x.cloneAsciinema = cloneAsciinema
 x.rehostAsciinema = rehostAsciinema
+x.hostAsciinemaFile = hostAsciinemaFile
 
 var embedUrl = "https://asciinema.org/api/asciicasts/"
 var pageUrl = "https://asciinema.org/a/"
@@ -60,38 +62,42 @@ function getAsciinemaSizeFromJson(j, cb) {
   cb(null, wh)
 }
 
-function cloneAsciinema(id, fpath, cb) {
-  id = id.toString().split('/')
-  id = id[id.length - 1]
-  if (!fpath) fpath = id
-
-  console.log('cloning', id, 'to', fpath)
+function setupAsciinemaDir(json, fpath, cb) {
+  if (!json) return cb(new Error("asciinema json required to setup asciinema dir"))
+  if (!fpath) return cb(new Error("path required to setup asciinema dir"))
 
   preparePath(fpath, function(err) {
-    if (err) return cb(err)
+  if (err) return cb(err)
 
-    getAsciinemaJSON(id, function(err, json) {
+    logWrite(fpath + '/data/asciinema.json', JSON.stringify(json), function(err) {
       if (err) return cb(err)
 
-      logWrite(fpath + '/data/asciinema.json', JSON.stringify(json), function(err) {
+      // size broken? https://github.com/asciinema/asciinema.org/issues/234
+      getAsciinemaSizeFromJson(json, function(err, size) {
         if (err) return cb(err)
 
-        // size broken? https://github.com/asciinema/asciinema.org/issues/234
-        getAsciinemaSizeFromJson(json, function(err, size) {
+        logWrite(fpath + '/data/size.json', JSON.stringify(size), function(err) {
           if (err) return cb(err)
 
-          logWrite(fpath + '/data/size.json', JSON.stringify(size), function(err) {
+          var frame = getAsciinemaFrame(size)
+          logWrite(fpath + '/iframe.html', frame, function(err) {
             if (err) return cb(err)
-
-            var frame = getAsciinemaFrame(size)
-            logWrite(fpath + '/iframe.html', frame, function(err) {
-              if (err) return cb(err)
-              cb(null, fpath)
-            })
+            cb(null, fpath)
           })
         })
       })
     })
+  })
+}
+
+function cloneAsciinema(id, fpath, cb) {
+  id = id.toString().split('/')
+  id = id[id.length - 1]
+
+  console.log('cloning', id, 'to', fpath)
+  getAsciinemaJSON(id, function(err, json) {
+    if (err) return cb(err)
+    setupAsciinemaDir(json, fpath, cb)
   })
 }
 
@@ -126,6 +132,37 @@ function rehostAsciinema(id, opts, cb) {
 
   var fpath = '/tmp/asciinema/' + id
   cloneAsciinema(id, fpath, function(err, fpath) {
+    if (err) return cb(err)
+
+    console.log('\nadding to ipfs. make sure your ipfs daemon is running.')
+    console.log('ipfs add -r', fpath)
+    ipfs.util.addFromFs(fpath, {recursive: true}, function(err, res) {
+      if (err) return cb(err)
+
+      var last = res[res.length-1]
+      console.log('published to /ipfs/' + last.hash)
+      cb(null, last.hash)
+    })
+  })
+}
+
+function hostAsciinemaFile(path, opts, cb) {
+  if (!path) throw new Error("no asciinema file given")
+  if (typeof(opts) === 'function') {
+    cb = opts
+    opts = {}
+  }
+  opts = opts || {}
+
+  var ipfs = new ipfsApi(opts.host, opts.port)
+
+  console.log('self-hosting asciinema', path)
+  var json = JSON.parse(fs.readFileSync(path))
+
+  var dir = tmp.dirSync({ template: '/tmp/asciinema/tmp-XXXXXX' })
+  var fpath = dir.name
+
+  setupAsciinemaDir(json, fpath, function(err, fpath) {
     if (err) return cb(err)
 
     console.log('\nadding to ipfs. make sure your ipfs daemon is running.')

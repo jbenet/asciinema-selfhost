@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-var usage = 'Usage: asciinema-selfhost --clone <asciinema-id> [<path>]\n'
+var usage = 'Usage: asciinema-selfhost --file <asciinema-file>\n'
+  + '       asciinema-selfhost --clone <asciinema-id> [<path>]\n'
   + '       asciinema-selfhost --rehost <asciinema-id>\n\n'
   + 'Clone asciinemas as small static websites, and then self host them\n'
   + 'on any webserver. Or use --rehost to publish them straight to ipfs!'
@@ -9,10 +10,11 @@ var as = require('./')
 var opt = require('optimist')
   .usage(usage)
   .boolean('h').alias('h', 'help').describe('h', 'show this help output')
+  .boolean('f').alias('f', 'file').describe('f', 'host asciinema from file in ipfs')
   .boolean('c').alias('c', 'clone').describe('c', 'clone asciinema')
+  .boolean('r').alias('r', 'rehost').describe('r', 'rehost asciinema to ipfs')
   .boolean('j').alias('j', 'json').describe('j', 'fetch asciinema.json')
   .boolean('s').alias('s', 'size').describe('s', 'fetch asciinema size')
-  .boolean('r').alias('r', 'rehost').describe('r', 'rehost asciinema to ipfs')
 
 if (opt.argv.h || opt.argv._.length < 1) {
   process.stdout.write(opt.help())
@@ -25,6 +27,15 @@ if (opt.argv.j) {
     if (err) throw err
     process.stdout.write(JSON.stringify(data))
     process.stdout.write('\n')
+  })
+
+} else if (opt.argv.f) {
+
+  as.hostAsciinemaFile(opt.argv._[0], function(err, hash) {
+    if (err) throw err
+
+    console.log('view locally at http://localhost:8080/ipfs/' + hash)
+    console.log('view globally at http://gateway.ipfs.io/ipfs/' + hash)
   })
 
 } else if (opt.argv.s) {
