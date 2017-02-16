@@ -21,20 +21,15 @@ function getAsciinemaJSON(id, cb) {
   var url = id
   if (url.match(/^[a-zA-Z0-9]+$/))
     url = pageUrl + url
+  if (!url.match(/\.json(\#.*)?(\?.*)?$/i))
+    url = url + '.json'
 
   request(url, function(err, res) {
     if (err) return cb(err)
     if (res.statusCode != 200)
       return cb(new Error("status code not 200"))
 
-    var m = res.body.match(/https:\/\/asciinema-bb-eu[^"]+/gi)
-    if (!m || !m[0]) return cb(new Error('no valid player json url in ' + url))
-
-    request(m[0], function(err, res) {
-      if (err) return cb(err)
-
-      cb(null, JSON.parse(res.body))
-    })
+    cb(null, JSON.parse(res.body))
   })
 }
 
@@ -48,23 +43,17 @@ function getAsciinemaFrame(size) {
 }
 
 function getAsciinemaSize(id, cb) {
-  var url = id
-  if (url.match(/^[a-zA-Z0-9]+$/))
-    url = embedUrl + url
-
-  request(url, function(err, res) {
+  getAsciinemaJSON(id, function(err, ajson) {
     if (err) return cb(err)
-    if (res.statusCode != 200)
-      return cb(new Error("status code not 200"))
 
-    var match = res.body.match(/"width":[0-9]+,"height":[0-9]+}/)
-    if (!match) return cb(new Error("cannot parse width/height from "+url))
+    var wh = {}
+    wh.height = ajson.height
+    wh.width = ajson.width
 
-    var json = JSON.parse('{'+match[0])
-    if (!json.width || !json.height)
-      return cb(new Error("parse error: missing width or height"), json)
+    if (!wh.width || !wh.height)
+      return cb(new Error("parse error: missing width or height"), ajson)
 
-    cb(null, json)
+    cb(null, wh)
   })
 }
 
