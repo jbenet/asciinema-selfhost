@@ -45,16 +45,19 @@ function getAsciinemaFrame(size) {
 function getAsciinemaSize(id, cb) {
   getAsciinemaJSON(id, function(err, ajson) {
     if (err) return cb(err)
-
-    var wh = {}
-    wh.height = ajson.height
-    wh.width = ajson.width
-
-    if (!wh.width || !wh.height)
-      return cb(new Error("parse error: missing width or height"), ajson)
-
-    cb(null, wh)
+    getAsciinemaSizeFromJson(ajson, cb)
   })
+}
+
+function getAsciinemaSizeFromJson(j, cb) {
+  var wh = {}
+  wh.height = j.height
+  wh.width = j.width
+
+  if (!wh.width || !wh.height)
+    return cb(new Error("parse error: missing width or height"), j)
+
+  cb(null, wh)
 }
 
 function cloneAsciinema(id, fpath, cb) {
@@ -63,7 +66,6 @@ function cloneAsciinema(id, fpath, cb) {
   if (!fpath) fpath = id
 
   console.log('cloning', id, 'to', fpath)
-
 
   preparePath(fpath, function(err) {
     if (err) return cb(err)
@@ -74,7 +76,8 @@ function cloneAsciinema(id, fpath, cb) {
       logWrite(fpath + '/data/asciinema.json', JSON.stringify(json), function(err) {
         if (err) return cb(err)
 
-        getAsciinemaSize(id, function(err, size) {
+        // size broken? https://github.com/asciinema/asciinema.org/issues/234
+        getAsciinemaSizeFromJson(json, function(err, size) {
           if (err) return cb(err)
 
           logWrite(fpath + '/data/size.json', JSON.stringify(size), function(err) {
@@ -104,8 +107,8 @@ function preparePath(fpath, cb) {
   // console.log('preparing', fpath)
   fse.mkdirp(fpath, function(err) {
     if (err) return cb(err)
-    console.log('copying', __dirname + '/build', 'to', fpath)
-    fse.copy(__dirname + '/build', fpath, cb)
+    console.log('copying', __dirname + '/tmpl', 'to', fpath)
+    fse.copy(__dirname + '/tmpl', fpath, cb)
   })
 }
 
@@ -119,7 +122,7 @@ function rehostAsciinema(id, opts, cb) {
 
   id = id.split('/')
   id = id[id.length - 1]
-  var ipfs = ipfsApi(opts.host, opts.port)
+  var ipfs = new ipfsApi(opts.host, opts.port)
 
   var fpath = '/tmp/asciinema/' + id
   cloneAsciinema(id, fpath, function(err, fpath) {
@@ -127,12 +130,12 @@ function rehostAsciinema(id, opts, cb) {
 
     console.log('\nadding to ipfs. make sure your ipfs daemon is running.')
     console.log('ipfs add -r', fpath)
-    ipfs.add(fpath, {recursive: true}, function(err, res) {
+    ipfs.util.addFromFs(fpath, {recursive: true}, function(err, res) {
       if (err) return cb(err)
 
       var last = res[res.length-1]
-      console.log('published to /ipfs/' + last.Hash)
-      cb(null, last.Hash)
+      console.log('published to /ipfs/' + last.hash)
+      cb(null, last.hash)
     })
   })
 }

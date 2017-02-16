@@ -1,22 +1,12 @@
 <html>
 <head>
+  <title>asciinema player</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-
-  <link rel="stylesheet" type="text/css" href="css/asciinema-player.css" />
-  <link rel="stylesheet" type="text/css" href="css/themes/tango.css" />
-
-  <script src="js/react-0.10.0.js"></script>
-  <script src="js/JSXTransformer-0.10.0.js"></script>
-  <script src="js/jquery-1.10.0.min.js"></script>
-  <script src="js/screenfull.js"></script>
+  <link rel="stylesheet" type="text/css" href="./asciinema-player.css" />
 </head>
 <body>
-<div id="player-container"></div>
-
-<script src="js/asciinema-player.min.js"></script>
-<script src="js/asciinema-embed.js"></script>
-<!-- o/ requests asciinema.json, the source -->
-
+  <asciinema-player src="./data/asciinema.json"></asciinema-player>
+  <script src="./asciinema-player.js"></script>
 </body>
 </html>
