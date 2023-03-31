@@ -7,19 +7,18 @@
     "asciinema-selfhost": "cli.js"
   },
   "dependencies": {
-    "cheerio": "^0.19.0",
+    "cheerio": "^1.0.0-rc.12",
     "cpr": "^0.4.1",
     "fs-extra": "^0.22.1",
     "ipfs-api": "^12.1.7",
     "mkdirp": "^0.5.1",
     "node-dom": "^0.1.0",
-    "optimist": "^0.6.1",
+    "optimist": "^0.5.2",
     "request": "^2.58.0",
     "tmp": "0.0.31",
     "vinyl": "^0.5.0",
-    "vinyl-fs": "^1.0.0"
+    "vinyl-fs": "^2.4.1"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
